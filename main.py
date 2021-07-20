@@ -35,7 +35,7 @@ def train(dataset_dir, image_x, image_y, lr, lr_decay, lr_step, batch_size, epoc
 
     train_files = [os.path.join(dataset_dir, DIR_TRAINING_DATA, f + ".jpg") for f in train_df.image_id]
     test_files = [os.path.join(dataset_dir, DIR_TEST_DATA, f + ".jpg") for f in train_df.image_id]
-    val_files = [os.path.join(dataset_dir, DIR_VALIDATION_DATA, f + ".jpg") for f in train_df.image_id]
+    val_files = [os.path.join(dataset_dir, DIR_VALIDATION_DATA, f + ".jpg") for f in val_df.image_id]
 
     train_labels = np.array(train_df.melanoma == 1, dtype=float).reshape((-1, 1))
     test_labels = np.array(test_df.melanoma == 1, dtype=float).reshape((-1, 1))
