@@ -46,8 +46,8 @@ def train(dataset_dir, image_x, image_y, lr, lr_decay, lr_step, batch_size, epoc
     val_dataset = ImageData(val_files, val_labels, transform=utils.get_test_transform((image_x, image_y)))
 
     train_data_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=16)
-    val_data_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=16)
-    test_data_loader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=16)
+    test_data_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=16)
+    val_data_loader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=16)
 
     device = torch.device("cuda")
     model = EfficientNetClassifier(b=0, num_classes=1).to(device)
@@ -150,6 +150,6 @@ def parseargs():
 if __name__ == '__main__':
     args = parseargs()
     time_str = time.strftime("%Y%m%d-%H%M%S")
-    args.log_dir = os.path.join(args.log_dir, args.log_dir)
+    args.log_dir = os.path.join(args.log_dir, time_str)
     os.makedirs(args.log_dir)
     train(**args.__dict__)
