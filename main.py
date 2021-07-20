@@ -30,11 +30,11 @@ def read_datasets(dataset_files):
 
 def train(dataset_dir, image_x, image_y, lr, lr_decay, lr_step, batch_size, epoch, log_dir):
     train_df = pd.read_csv(os.path.join(dataset_dir, FILE_TRAINING_LABELS))
-    test_df = pd.read_csv(os.path.join(dataset_dir, FILE_TRAINING_LABELS))
-    val_df = pd.read_csv(os.path.join(dataset_dir, FILE_TRAINING_LABELS))
+    test_df = pd.read_csv(os.path.join(dataset_dir, FILE_TEST_LABELS))
+    val_df = pd.read_csv(os.path.join(dataset_dir, FILE_VALIDATION_LABELS))
 
     train_files = [os.path.join(dataset_dir, DIR_TRAINING_DATA, f + ".jpg") for f in train_df.image_id]
-    test_files = [os.path.join(dataset_dir, DIR_TEST_DATA, f + ".jpg") for f in train_df.image_id]
+    test_files = [os.path.join(dataset_dir, DIR_TEST_DATA, f + ".jpg") for f in test_df.image_id]
     val_files = [os.path.join(dataset_dir, DIR_VALIDATION_DATA, f + ".jpg") for f in val_df.image_id]
 
     train_labels = np.array(train_df.melanoma == 1, dtype=float).reshape((-1, 1))
