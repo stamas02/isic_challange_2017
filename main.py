@@ -90,11 +90,11 @@ def train(dataset_dir, image_x, image_y, lr, lr_decay, lr_step, batch_size, epoc
     predictions = []
     files = []
     labels = []
-    for images, _labels, _files in test_data_loader:
+    for images, _labels, _files in tqdm(test_data_loader, desc="Predicting on test set"):
         images = images.to(device)
         optimizer.zero_grad()
         logits = model(images, dropout=False)
-        predictions += list(F.sigmoid(logits).item())
+        predictions += F.sigmoid(logits).detach().cpu().numpy()
         files += _files
         labels += labels
 
@@ -136,7 +136,7 @@ def parseargs():
                         default=2,
                         help="Integer Value - The sizes of the batches during training.")
     parser.add_argument("--epoch", type=int,
-                        default=15,
+                        default=0,
                         help="Integer Value - Number of epoch.")
 
     # Logging Arguments
