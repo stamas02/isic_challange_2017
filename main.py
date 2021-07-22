@@ -94,7 +94,7 @@ def train(dataset_dir, image_x, image_y, lr, lr_decay, lr_step, batch_size, epoc
         images = images.to(device)
         optimizer.zero_grad()
         logits = model(images, dropout=False)
-        predictions += F.sigmoid(logits).detach().cpu().numpy()
+        predictions += F.sigmoid(logits).detach().cpu().numpy().flatten().tolist()
         files += _files
         labels += labels
 
