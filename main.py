@@ -96,7 +96,7 @@ def train(dataset_dir, image_x, image_y, lr, lr_decay, lr_step, batch_size, epoc
         logits = model(images, dropout=False)
         predictions += F.sigmoid(logits).detach().cpu().numpy().flatten().tolist()
         files += _files
-        labels += labels
+        labels += _labels
 
     df_test_log = pd.DataFrame(data={"file": files,
                                      "melanoma-p": predictions,
