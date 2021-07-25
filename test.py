@@ -25,7 +25,7 @@ def test(model_path, dataset_dir, batch_size, image_x, image_y):
     test_files = [os.path.join(dataset_dir, DIR_TEST_DATA, f + ".jpg") for f in test_df.image_id]
     test_labels = np.array(test_df.melanoma == 1, dtype=float).reshape((-1, 1))
     test_dataset = ImageData(test_files, test_labels, transform=utils.get_test_transform((image_x, image_y)))
-    test_data_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=16)
+    test_data_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=4)
 
     predictions = []
     files = []
@@ -36,7 +36,7 @@ def test(model_path, dataset_dir, batch_size, image_x, image_y):
             logits = model(images, dropout=False)
             predictions += torch.sigmoid(logits).detach().cpu().numpy().flatten().tolist()
             files += _files
-            labels += _labels
+            labels += _labels.detach().cpu().numpy().flatten().tolist()
 
     df_test_log = pd.DataFrame(data={"file": files,
                                      "melanoma-p": predictions,
