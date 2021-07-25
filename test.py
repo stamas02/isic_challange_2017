@@ -50,7 +50,7 @@ def test(model_path, dataset_dir, batch_size, image_x, image_y):
 
 def evaluate(test_file, log_dir, log_name):
     df = pd.read_csv(test_file)
-    fpr, tpr, thresholds = roc_curve(y_true=df.melanoma_gt, y_score=df.melanoma_p)
+    fpr, tpr, thresholds = roc_curve(y_true=df["melanoma_gt"], y_score=df["melanoma_p"])
 
     df_roc = pd.DataFrame(data={"Fpr": fpr,
                                 "Tpr": tpr,
