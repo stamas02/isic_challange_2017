@@ -1,6 +1,7 @@
 from src import utils
 from src.dataset import ImageData
 from src.model import EfficientNetClassifier
+from test import test
 import pandas as pd
 import torch
 from torch.optim import SGD
@@ -16,8 +17,6 @@ DIR_TRAINING_DATA = "ISIC-2017_Training_Data"
 FILE_TRAINING_LABELS = "ISIC-2017_Training_Part3_GroundTruth.csv"
 DIR_VALIDATION_DATA = "ISIC-2017_Validation_Data"
 FILE_VALIDATION_LABELS = "ISIC-2017_Validation_Part3_GroundTruth.csv"
-DIR_TEST_DATA = "ISIC-2017_Test_v2_Data"
-FILE_TEST_LABELS = "ISIC-2017_Test_v2_Part3_GroundTruth.csv"
 
 
 def read_datasets(dataset_files):
@@ -28,25 +27,20 @@ def read_datasets(dataset_files):
     return df
 
 
-def train(dataset_dir, image_x, image_y, lr, lr_decay, lr_step, batch_size, epoch, log_dir):
+def train(dataset_dir, image_x, image_y, lr, lr_decay, lr_step, batch_size, epoch, log_dir, log_name, do_test):
     train_df = pd.read_csv(os.path.join(dataset_dir, FILE_TRAINING_LABELS))
-    test_df = pd.read_csv(os.path.join(dataset_dir, FILE_TEST_LABELS))
     val_df = pd.read_csv(os.path.join(dataset_dir, FILE_VALIDATION_LABELS))
 
     train_files = [os.path.join(dataset_dir, DIR_TRAINING_DATA, f + ".jpg") for f in train_df.image_id]
-    test_files = [os.path.join(dataset_dir, DIR_TEST_DATA, f + ".jpg") for f in test_df.image_id]
     val_files = [os.path.join(dataset_dir, DIR_VALIDATION_DATA, f + ".jpg") for f in val_df.image_id]
 
     train_labels = np.array(train_df.melanoma == 1, dtype=float).reshape((-1, 1))
-    test_labels = np.array(test_df.melanoma == 1, dtype=float).reshape((-1, 1))
     val_labels = np.array(val_df.melanoma == 1, dtype=float).reshape((-1, 1))
 
     train_dataset = ImageData(train_files, train_labels, transform=utils.get_train_transform((image_x, image_y)))
-    test_dataset = ImageData(test_files, test_labels, transform=utils.get_test_transform((image_x, image_y)))
     val_dataset = ImageData(val_files, val_labels, transform=utils.get_test_transform((image_x, image_y)))
 
     train_data_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=16)
-    test_data_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=16)
     val_data_loader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=16)
 
     device = torch.device("cuda")
@@ -87,24 +81,15 @@ def train(dataset_dir, image_x, image_y, lr, lr_decay, lr_step, batch_size, epoc
                                             'train-loss': train_loss,
                                             'val-loss': val_loss}, ignore_index=True)
 
-    predictions = []
-    files = []
-    labels = []
-    for images, _labels, _files in tqdm(test_data_loader, desc="Predicting on test set"):
-        images = images.to(device)
-        optimizer.zero_grad()
-        logits = model(images, dropout=False)
-        predictions += F.sigmoid(logits).detach().cpu().numpy().flatten().tolist()
-        files += _files
-        labels += _labels
+    df_train_log.to_csv(os.path.join(log_dir, log_name + "-train_log.csv"), index=False, header=True)
+    torch.save(model, os.path.join(log_dir, log_name + "-model.pt"))
 
-    df_test_log = pd.DataFrame(data={"file": files,
-                                     "melanoma-p": predictions,
-                                     "melanoma-gt": labels})
-
-    df_test_log.to_csv(os.path.join(log_dir, "test_result.csv"), index=False, header=True)
-    df_test_log.to_csv(os.path.join(log_dir, "train_log.csv"), index=False, header=True)
-    torch.save(model, os.path.join(log_dir, "model.pt"))
+    if do_test:
+        test(model_path=os.path.join(log_dir, log_name + "-model.pt"),
+             dataset_dir=dataset_dir,
+             batch_size=batch_size,
+             image_x=image_x,
+             image_y=image_y)
 
 
 def parseargs():
@@ -138,10 +123,16 @@ def parseargs():
     parser.add_argument("--epoch", type=int,
                         default=0,
                         help="Integer Value - Number of epoch.")
+    parser.add_argument('--do-test', action='store_true',
+                        help="Flag Boolean Value - If set testing will be carried out after training")
 
     # Logging Arguments
     parser.add_argument("--log-dir", type=str,
                         help="String Value - Path to the folder the log is to be saved.")
+    parser.add_argument("--log-name", type=str,
+                        default=225,
+                        help="String Value - This is a descriptive name of the method. "
+                             "Will be used in legends e.g. ROC curve")
 
     args = parser.parse_args()
     return args
