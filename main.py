@@ -104,7 +104,7 @@ def train(dataset_dir, image_x, image_y, lr, lr_decay, lr_step, batch_size, epoc
 
     df_test_log.to_csv(os.path.join(log_dir, "test_result.csv"), index=False, header=True)
     df_test_log.to_csv(os.path.join(log_dir, "train_log.csv"), index=False, header=True)
-    model.save_model(path=os.path.join(log_dir, "model.pt"))
+    torch.save(model, os.path.join(log_dir, "model.pt"))
 
 
 def parseargs():
