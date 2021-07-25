@@ -43,6 +43,9 @@ def test(model_path, dataset_dir, batch_size, image_x, image_y):
                                      "melanoma-gt": labels})
 
     df_test_log.to_csv(os.path.join(log_dir, log_name + "-test_result.csv"), index=False, header=True)
+    evaluate(test_file=os.path.join(log_dir, log_name + "-test_result.csv"),
+             log_dir=log_dir,
+             log_name=log_name)
 
 
 def evaluate(test_file, log_dir, log_name):
