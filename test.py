@@ -56,7 +56,7 @@ def evaluate(test_file, log_dir, log_name):
                                 "Tpr": tpr,
                                 "Thresholds": thresholds})
     df_roc.to_csv(os.path.join(log_dir, log_name + "-roc.csv"), index=False, header=True)
-    df_roc.plot(x='Fpr', y='Tpr', kind='line')
+    df_roc.plot(x='Fpr', y='Tpr', title="Melanoma classification ", kind='line')
     plt.savefig(os.path.join(log_dir, log_name + "-roc.pdf"), format="pdf", bbox_inches="tight")
     plt.show()
 
