@@ -7,6 +7,7 @@ import torch
 from torch.optim import SGD
 from torch.optim.lr_scheduler import StepLR
 from torch.nn import functional as F
+import torch.nn as nn
 import argparse
 import os
 import numpy as np
@@ -34,8 +35,8 @@ def train(dataset_dir, image_x, image_y, lr, lr_decay, lr_step, batch_size, epoc
     train_files = [os.path.join(dataset_dir, DIR_TRAINING_DATA, f + ".jpg") for f in train_df.image_id]
     val_files = [os.path.join(dataset_dir, DIR_VALIDATION_DATA, f + ".jpg") for f in val_df.image_id]
 
-    train_labels = np.array(train_df.melanoma == 1, dtype=float).reshape((-1, 1))
-    val_labels = np.array(val_df.melanoma == 1, dtype=float).reshape((-1, 1))
+    train_labels = np.array((-train_df.melanoma * 2) - (train_df.seborrheic_keratosis) + 2, dtype=int)
+    val_labels = np.array((-val_df.melanoma * 2) - (val_df.seborrheic_keratosis) + 2, dtype=int)
 
     train_dataset = ImageData(train_files, train_labels, transform=utils.get_train_transform((image_x, image_y)))
     val_dataset = ImageData(val_files, val_labels, transform=utils.get_test_transform((image_x, image_y)))
@@ -44,9 +45,10 @@ def train(dataset_dir, image_x, image_y, lr, lr_decay, lr_step, batch_size, epoc
     val_data_loader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=16)
 
     device = torch.device("cuda")
-    model = EfficientNetClassifier(b=0, num_classes=1).to(device)
+    model = EfficientNetClassifier(b=0, num_classes=3).to(device)
     optimizer = SGD(params=model.parameters(), lr=lr)
     scheduler = StepLR(optimizer, step_size=lr_step, gamma=lr_decay)
+    criterion = nn.CrossEntropyLoss()
 
     df_train_log = pd.DataFrame(columns=['epoch', 'train-loss', 'val-loss'])
 
@@ -59,7 +61,7 @@ def train(dataset_dir, image_x, image_y, lr, lr_decay, lr_step, batch_size, epoc
             labels = labels.to(device)
             optimizer.zero_grad()
             logits = model(images, dropout=True)
-            loss = F.binary_cross_entropy_with_logits(logits, labels)
+            loss = F.cross_entropy(logits, labels)
             loss.backward()
             train_loss = train_loss * (1 - (1 / (i + 1))) + loss.item() * (1 / (i + 1))
             p_bar.set_postfix({'loss': train_loss})
