@@ -104,6 +104,7 @@ def evaluate(test_file, log_dir, log_name):
     ppv = tp / (tp + fp)
     npv = tn / (tn + fn)
     dice = [metrics.f1_score(gt, p >= 0.5) for gt, p, _ in results]
+    jaccard = [metrics.jaccard_score(gt, p >= 0.5) for gt, p, _ in results]
 
     df_performance = pd.DataFrame(data={"Metrics": [name for _, _, name in results],
                                         "AUC": auc,
@@ -114,6 +115,7 @@ def evaluate(test_file, log_dir, log_name):
                                         "Sensitivity": tpr,
                                         "Specificity": tnr,
                                         "Dice Coefficient": dice,
+                                        "Jaccard Index": jaccard,
                                         "PPV": ppv,
                                         "NPV": npv})
 
