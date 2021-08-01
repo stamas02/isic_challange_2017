@@ -76,7 +76,7 @@ def train(dataset_dir, image_x, image_y, lr, lr_decay, lr_step, batch_size, epoc
                 images = images.to(device)
                 labels = labels.to(device)
                 logits = model(images, dropout=False)
-                loss = F.binary_cross_entropy_with_logits(logits, labels)
+                loss = F.cross_entropy(logits, labels)
                 val_loss = val_loss * (1 - (1 / (i + 1))) + loss.item() * (1 / (i + 1))
 
         df_train_log = df_train_log.append({'epoch': _epoch,
